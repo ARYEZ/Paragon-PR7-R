@@ -49,6 +49,9 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Get-ChildItem -Recurse dist/PR7-R/_internal -Filter "Qt6Pdf.dll")) { throw "QtPdf is missing" }
+          $icu = Get-ChildItem -Recurse dist/PR7-R/_internal -Filter "icudtl.dat"
+          if (-not $icu) { throw "icudtl.dat is missing: PDFium couldn't read text" }
+          "ICU data: $($icu.FullName)"
           foreach ($f in "dist/PR7-R/PR7-R.exe", "dist/PR7-R/_internal/pr7r/fonts/Inter-Regular.ttf",
                          "dist/PR7-R/_internal/pr7r/icons/app.ico") {
             if (-not (Test-Path $f)) { throw "missing $f" }

@@ -28,10 +28,19 @@ if sys.platform == "win32":  # version resources exist only in Windows programs
             StringStruct("ProductVersion", version)])]),
               VarFileInfo([VarStruct("Translation", [1033, 1200])])])
 
+# QtPdf's PDFium reads text (Find, selecting, copying) with ICU, which needs its data file, icudtl.dat. It sits in
+# PySide6's "resources" folder (next to Qt WebEngine's files, which aren't built in), so it's collected by hand, at
+# the same place inside the build. Without it pages still draw but have no text.
+import PySide6
+pyside = Path(PySide6.__file__).parent
+icu = [(str(f), str(Path("PySide6") / f.parent.relative_to(pyside))) for f in pyside.rglob("icudtl.dat")]
+if not icu:
+    raise SystemExit("icudtl.dat not found in PySide6: QtPdf couldn't read text")
+
 a = Analysis(
     [str(root / "tools" / "launcher.py")],
     pathex=[str(root)],
-    datas=[(str(root / "pr7r" / "fonts"), "pr7r/fonts"), (str(root / "pr7r" / "icons"), "pr7r/icons")],
+    datas=[(str(root / "pr7r" / "fonts"), "pr7r/fonts"), (str(root / "pr7r" / "icons"), "pr7r/icons")] + icu,
     # QtPdf (PDFium) draws the pages; QtPrintSupport prints; QtNetwork's local socket hands files to an open window.
     hiddenimports=["PySide6.QtPdf", "PySide6.QtPrintSupport", "PySide6.QtNetwork"],
     excludes=["tkinter", "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.QtQml", "PySide6.QtQuick",

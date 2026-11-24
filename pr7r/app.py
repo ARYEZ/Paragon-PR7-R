@@ -154,8 +154,19 @@ def selftest(path: str, out: str) -> int:
     return 0 if "pages" in result else 1
 
 
+def icu_data() -> None:
+    """Tell QtPdf where ICU's data (icudtl.dat) is in the built program, so PDFium can read text."""
+    if getattr(sys, "frozen", False) and "QT_WEBENGINE_ICU_DATA_DIR" not in os.environ:
+        base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+        for sub in (os.path.join("PySide6", "resources"), os.path.join("PySide6", "Qt", "resources")):
+            if os.path.isfile(os.path.join(base, sub, "icudtl.dat")):
+                os.environ["QT_WEBENGINE_ICU_DATA_DIR"] = os.path.join(base, sub)
+                break
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    icu_data()
     if argv[:1] == ["--version"]:
         from . import __version__
         print(__version__)
