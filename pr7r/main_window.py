@@ -231,6 +231,30 @@ class Home(QWidget):
         m.exec(e.globalPos())
 
 
+def load_pdf(pdf: QPdfDocument, path: str) -> QPdfDocument.Error:
+    """Load a PDF from a copy of its bytes in memory, not from the file. QtPdf keeps a file it loaded open, and Windows
+    won't rename or overwrite an open file; SumatraPDF doesn't lock documents either, so PR7-R's Rename works and
+    another program can rewrite the PDF while it's shown (it's then reloaded)."""
+    from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+    try:
+        with open(path, "rb") as fh:
+            data = fh.read()
+    except OSError:
+        return QPdfDocument.Error.FileNotFound
+    buf = QBuffer(pdf)                    # owned by the document: it reads pages from it as needed
+    buf.setData(QByteArray(data))
+    buf.open(QIODevice.OpenModeFlag.ReadOnly)
+    old = getattr(pdf, "_buffer", None)
+    pdf._buffer = buf
+    pdf.load(buf)
+    if old is not None:
+        old.deleteLater()
+    # Loading from a device is asynchronous in Qt: it's done once the status says Ready or Error.
+    while pdf.status() == QPdfDocument.Status.Loading:
+        QApplication.processEvents()
+    return pdf.error()
+
+
 def thumbnail(path: str) -> QImage | None:
     """The first page as a 300 px wide picture, kept in the data folder while the file is unchanged."""
     import hashlib
@@ -245,7 +269,7 @@ def thumbnail(path: str) -> QImage | None:
         if not img.isNull():
             return img
     doc = QPdfDocument()
-    if doc.load(path) != QPdfDocument.Error.None_ or doc.pageCount() == 0:
+    if load_pdf(doc, path) != QPdfDocument.Error.None_ or doc.pageCount() == 0:
         return None
     s = doc.pagePointSize(0)
     img = doc.render(0, QSize(300, int(300 * s.height() / max(s.width(), 1))))
@@ -587,14 +611,14 @@ class MainWindow(QMainWindow):
 
     def _load(self, path: str) -> QPdfDocument | None:
         pdf = QPdfDocument(self)
-        err = pdf.load(path)
+        err = load_pdf(pdf, path)
         tries = 0
         while err == QPdfDocument.Error.IncorrectPassword and tries < 5:
             pw = self._ask("password", os.path.basename(path))
             if pw is None:
                 return None
             pdf.setPassword(pw)
-            err = pdf.load(path)
+            err = load_pdf(pdf, path)
             tries += 1
         if err != QPdfDocument.Error.None_:
             return None

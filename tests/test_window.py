@@ -212,3 +212,21 @@ def test_copy_and_select_all(window, pdfs, qapp):
     window.view.setFocus()
     window.copy()
     assert "Before you begin" in qapp.clipboard().text()
+
+
+def test_the_file_is_not_kept_open(window, pdfs, tmp_path):
+    """SumatraPDF doesn't lock documents: another program can rewrite or rename the PDF while it's shown. (QtPdf would
+    keep a file it loaded open, and Windows refuses to overwrite or rename an open file.)"""
+    window.open_files([str(pdfs["book"])])
+    path = pdfs["book"]
+    if os.path.isdir("/proc/self/fd"):
+        held = [os.path.realpath(f"/proc/self/fd/{fd}") for fd in os.listdir("/proc/self/fd")]
+        assert str(path.resolve()) not in held
+    new = tmp_path / "new.pdf"
+    sample_pdf.short(new, "New", 9, pages=2)
+    os.replace(new, path)                          # overwrite it in place, as an exporter does
+    moved = tmp_path / "moved.pdf"
+    os.rename(path, moved)                         # and rename it
+    os.rename(moved, path)
+    window.reload(str(path))
+    assert window.view.page_count() == 2

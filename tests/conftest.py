@@ -77,6 +77,8 @@ def pdfs(_book_master, tmp_path):
 def window(qapp, clean_settings):
     from pr7r.main_window import MainWindow
     w = MainWindow()
+    # An error box nobody answers would wait forever (as it did on Windows CI): fail the test with its text instead.
+    w.answers["error"] = lambda text: pytest.fail(f"PR7-R showed an error: {text}")
     w.resize(1200, 800)
     w.show()
     qapp.processEvents()
