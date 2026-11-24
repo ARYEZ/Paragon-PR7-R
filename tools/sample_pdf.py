@@ -26,6 +26,18 @@ CHAPTERS = [
 ]
 
 
+_FONTS: list[int] = []
+
+
+def _fonts() -> None:
+    """Load PR7-R's Inter fonts for the text. Without them, Qt on Windows' offscreen platform has no fonts at all
+    and writes no text into the PDF (pages with pictures and no words; Find would have nothing to find)."""
+    if not _FONTS:
+        from PySide6.QtGui import QFontDatabase
+        for ttf in (Path(__file__).resolve().parents[1] / "pr7r" / "fonts").glob("*.ttf"):
+            _FONTS.append(QFontDatabase.addApplicationFont(str(ttf)))
+
+
 def _sky(p: QPainter, r: QRectF, seed: int) -> None:
     """A figure in family colours: a dusk sky with stars over hills."""
     rnd = random.Random(seed)
@@ -53,6 +65,7 @@ def _sky(p: QPainter, r: QRectF, seed: int) -> None:
 
 def field_guide(path: Path) -> Path:
     """An 18-page book: a cover, then chapters with headings, body text, figures and page numbers."""
+    _fonts()
     w = QPdfWriter(str(path))
     w.setTitle("A Field Guide to Night Skies")
     w.setCreator("Paragon PR7-R sample")
@@ -111,6 +124,7 @@ def field_guide(path: Path) -> Path:
 
 def short(path: Path, title: str, seed: int, pages: int = 3) -> Path:
     """A few pages with a title and a figure (the home page's other recent documents)."""
+    _fonts()
     w = QPdfWriter(str(path))
     w.setTitle(title)
     w.setPageLayout(QPageLayout(QPageSize(QPageSize.A4), QPageLayout.Portrait, QMarginsF(0, 0, 0, 0)))
