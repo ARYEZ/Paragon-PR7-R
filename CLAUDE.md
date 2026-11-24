@@ -28,6 +28,11 @@ owner writes Python; explain the why of changes.
 - `pr7r/app.py`: one window per user: `hand_over` sends a later launch's files over a QLocalSocket (`server_name`,
   hashed user name), `listen` takes them. `-page N`, `-new-window`, `--register` / `--unregister` (shell.py: Open with,
   Capabilities, RegisteredApplications, HKCU only), `--selftest PDF OUT.json` (CI runs it on the installed exe).
+- Windows lessons: PDFs are loaded from memory (`main_window.load_pdf`, a QBuffer): QtPdf keeps a loaded file open
+  and Windows then refuses Rename and rewriting the PDF. `app.listen` reads data already waiting when it accepts a
+  connection (on Windows it can arrive before readyRead is connected). Anything that writes a PDF with Qt offscreen
+  must load fonts first (`sample_pdf._fonts`): Windows' offscreen platform has none and writes no text. The spec
+  ships PySide6's `icudtl.dat` (QtPdf's ICU data; harmless, kept in case PDFium needs it).
 - `tools/sample_pdf.py`: test PDFs written by QPdfWriter (`field_guide`, `short`); `book` adds bookmarks, links and a
   password with **pypdf** (a test-only dependency).
 - Installer `installer/pr7r.iss` (Inno Setup 6, per user, AppId {1BC53F2C-70E7-45EA-B97E-FC9294E87FC3} permanent);
