@@ -20,11 +20,18 @@ def test_command_line():
 
 def test_a_second_launch_hands_its_files_to_the_open_window(window, pdfs, qapp):
     """Double-clicking another PDF while PR7-R is open adds a tab to that window (SumatraPDF's way)."""
+    import subprocess
     assert app.listen(window) is not None
-    assert app.hand_over([str(pdfs["book"])], 3)
-    deadline = time.time() + 5
-    while not window.docs and time.time() < deadline:
+    # The second launch is its own process, as when Explorer starts PR7-R again.
+    code = ("import sys; sys.path.insert(0, sys.argv[1]); from PySide6.QtCore import QCoreApplication; "
+            "a = QCoreApplication([]); from pr7r import app; sys.exit(0 if app.hand_over([sys.argv[2]], 3) else 1)")
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.Popen([sys.executable, "-c", code, root, str(pdfs["book"])])
+    deadline = time.time() + 20
+    while (not window.docs or proc.poll() is None) and time.time() < deadline:
         qapp.processEvents()
+        time.sleep(0.01)
+    assert proc.wait(5) == 0
     assert window.doc and window.doc.name == "Night Skies.pdf" and window.view.current_page() == 3
     window.instance_server.close()
 

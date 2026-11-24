@@ -63,7 +63,10 @@ def hand_over(files: list[str], page: int | None) -> bool:
     s.write(json.dumps({"files": files, "page": page}).encode() + b"\n")
     s.flush()
     s.waitForBytesWritten(TIMEOUT_MS)
-    s.disconnectFromServer()
+    # The window closes the connection once it has the files: wait for that, so this process doesn't end before
+    # they're delivered (a named pipe on Windows); then close our end if it hasn't.
+    if not s.waitForDisconnected(TIMEOUT_MS):
+        s.disconnectFromServer()
     return True
 
 
@@ -77,11 +80,15 @@ def listen(window):
 
     def connection():
         sock = server.nextPendingConnection()
+        if sock is None:
+            return
         buf = bytearray()
+        done = []
 
         def read():
             buf.extend(bytes(sock.readAll()))
-            if buf.endswith(b"\n"):
+            if buf.endswith(b"\n") and not done:
+                done.append(True)
                 try:
                     msg = json.loads(buf.decode())
                 except ValueError:
@@ -94,6 +101,9 @@ def listen(window):
                 window.activateWindow()
                 sock.disconnectFromServer()
         sock.readyRead.connect(read)
+        sock.disconnected.connect(read)
+        if sock.bytesAvailable():      # on Windows the files can be here before readyRead is connected
+            read()
     server.newConnection.connect(connection)
     window.instance_server = server
     return server
