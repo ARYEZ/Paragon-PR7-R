@@ -88,7 +88,7 @@ jobs:
                -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/LOG=install.log"
           if ($p.ExitCode -ne 0) { Get-Content install.log; throw "install failed: $($p.ExitCode)" }
           python tools/verify_install.py installed
-          if ($LASTEXITCODE -ne 0) { Get-Content install.log; throw "install check failed" }
+          if ($LASTEXITCODE -ne 0) { throw "install check failed (its list above says which part)" }
           $p = Start-Process "$env:LOCALAPPDATA\Programs\PR7-R\unins000.exe" -Wait -PassThru `
                -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"
           if ($p.ExitCode -ne 0) { throw "uninstall failed: $($p.ExitCode)" }

@@ -27,6 +27,16 @@ def value(path, name=""):
         return None
 
 
+def exists(path, name):
+    """Whether a value is there (an empty REG_NONE value, as Open with's entries are, reads back as None)."""
+    try:
+        with winreg.OpenKey(HKCU, path) as k:
+            winreg.QueryValueEx(k, name)
+            return True
+    except OSError:
+        return False
+
+
 def check(ok, what, p):
     print(("ok    " if ok else "FAIL  ") + what)
     if not ok:
@@ -43,7 +53,7 @@ def installed():
     check(value(UNINSTALL, "DisplayName") == "Paragon PR7-R", "Installed apps entry", p)
     cmd = value(PROGID + r"\shell\open\command") or ""
     check(str(exe).lower() in cmd.lower() and cmd.endswith('"%1"'), f"PDF open command: {cmd}", p)
-    check(value(r"Software\Classes\.pdf\OpenWithProgids", "Paragon.PR7R.PDF") is not None, "Open with lists PR7-R", p)
+    check(exists(r"Software\Classes\.pdf\OpenWithProgids", "Paragon.PR7R.PDF"), "Open with lists PR7-R", p)
     check(value(r"Software\RegisteredApplications", "Paragon PR7-R") == r"Software\Paragon\PR7-R\Capabilities",
           "Default apps lists PR7-R", p)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
