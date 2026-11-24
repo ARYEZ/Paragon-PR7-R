@@ -26,6 +26,10 @@ def _poly(path: QPainterPath, pts, x: float) -> None:
     path.closeSubpath()
 
 
+# R: the P's bowl with its counter (a hole) and a leg, as in the PR7 letters.
+R_BOWL = [(0, 0), (.64, 0), (.8, .15), (.8, .45), (.64, .6), (.24, .6), (.24, 1), (0, 1)]
+R_COUNTER = [(.24, .2), (.56, .2), (.56, .4), (.24, .4)]
+R_LEG = [(.4, .6), (.64, .6), (.84, 1), (.6, 1)]
 SEVEN_SHAPE = [(0, 0), (.8, 0), (.8, .2), (.44, 1), (.18, 1), (.5, .2), (0, .2)]
 
 
@@ -262,6 +266,9 @@ def _icon_path(name: str) -> QPainterPath:
         p.moveTo(18.5, 9); p.cubicTo(16, 4, 7, 3.5, 5, 10); p.cubicTo(3.5, 16, 9, 21, 14.5, 19.5)
     elif name == "bookmarks":
         p.moveTo(7, 3); p.lineTo(17, 3); p.lineTo(17, 21); p.lineTo(12, 16.5); p.lineTo(7, 21); p.closeSubpath()
+    elif name == "case":           # "Aa": Find's Match case
+        p.moveTo(2.5, 19); p.lineTo(7.5, 5); p.lineTo(12.5, 19); p.moveTo(4.4, 14); p.lineTo(10.6, 14)
+        p.addEllipse(QRectF(14, 12.5, 6, 6.5)); p.moveTo(20, 12); p.lineTo(20, 19)
     elif name == "pdf":            # a page with three lines of text
         p.moveTo(5, 2.5); p.lineTo(14, 2.5); p.lineTo(19, 7.5); p.lineTo(19, 21.5); p.lineTo(5, 21.5); p.closeSubpath()
         for y in (11, 14.5, 18):

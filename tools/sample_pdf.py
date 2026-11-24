@@ -130,6 +130,36 @@ def short(path: Path, title: str, seed: int, pages: int = 3) -> Path:
     return path
 
 
+def page_of(chapter: int, section: int) -> int:
+    """The page (0-based) of a chapter's section in field_guide: the cover, then one page per section."""
+    return 1 + chapter * 3 + section
+
+
+def book(path: Path, password: str | None = None) -> Path:
+    """field_guide with what Qt's PDF writer can't make, added by pypdf (a test-only dependency): bookmarks (the
+    outline: Cover, each chapter, its sections), a link on page 2 to the Moon chapter and one to a web page, and
+    optionally a password."""
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.annotations import Link
+    plain = field_guide(path.with_name(path.stem + "-plain.pdf"))
+    writer = PdfWriter(clone_from=PdfReader(str(plain)))
+    writer.add_outline_item(title="Cover", page_number=0)
+    for c, (num, title, sections) in enumerate(CHAPTERS):
+        parent = writer.add_outline_item(title=f"{num}  {title}", page_number=page_of(c, 0))
+        for k, section in enumerate(sections):
+            writer.add_outline_item(title=section, page_number=page_of(c, k), parent=parent)
+    h = float(writer.pages[1].mediabox.height)
+    writer.add_annotation(page_number=1, annotation=Link(rect=(72, h - 72, 300, h - 40),
+                                                          target_page_index=page_of(5, 0)))
+    writer.add_annotation(page_number=1, annotation=Link(rect=(320, h - 72, 520, h - 40), url="https://example.com/"))
+    if password:
+        writer.encrypt(password, algorithm="AES-256")
+    with open(path, "wb") as fh:
+        writer.write(fh)
+    plain.unlink()
+    return path
+
+
 if __name__ == "__main__":
     from PySide6.QtGui import QGuiApplication
     app = QGuiApplication([])
