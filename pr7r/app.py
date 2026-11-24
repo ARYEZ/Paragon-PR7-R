@@ -132,11 +132,20 @@ def selftest(path: str, out: str) -> int:
         img = w.view.viewport().grab().toImage()
         inked = sum(1 for x in range(0, img.width(), 7) for y in range(0, img.height(), 7)
                     if img.pixelColor(x, y).lightness() < 100 and img.pixelColor(x, y) != QColor(theme.PANEL))
+        from .pageview import find_in_page
+        text = w.doc.pdf.getAllText(1)
+        try:
+            direct = len(find_in_page(w.doc.pdf, 1, "moon"))
+        except Exception as e:  # noqa: BLE001 - reported
+            direct = f"{type(e).__name__}: {e}"
         w.find_box.setText("Moon")
         w.find_next(True)
         result = {"version": __version__, "pages": w.view.page_count(), "inked": inked,
                   "matches": len(w.view.matches), "bookmarks": len(w.doc.outline),
-                  "fonts": "Inter" in QFontDatabase.families()}
+                  "fonts": "Inter" in QFontDatabase.families(),
+                  # what Find is built on, to tell which part fails if it does
+                  "text_valid": text.isValid(), "text_chars": len(text.text()), "page_matches": direct,
+                  "find_count": w.find_count.text()}
         w.close()
     except Exception as e:  # noqa: BLE001 - reported in the output
         result = {"error": f"{type(e).__name__}: {e}"}
