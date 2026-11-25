@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ["PARAGON_FAMILY_FILE"] = os.path.join(__import__("tempfile").mkdtemp(prefix="family-"), "finish")  # never the real choice
 # QtPdf notes bookmarks without an exact place on the page (pypdf writes them so): harmless, and noisy.
 os.environ.setdefault("QT_LOGGING_RULES", "qt.pdf.*=false")
 # Tests never touch the real data folder (history, thumbnails): PR7R_DATA points at a folder of its own.

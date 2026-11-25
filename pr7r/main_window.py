@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QDia
                                QPushButton, QSplitter, QStackedWidget, QTabBar, QTreeWidget, QTreeWidgetItem,
                                QVBoxLayout, QWidget)
 
+from . import finish
 from . import __version__, family, history, layout, settings, theme, widgets
 from .pageview import PageView, find_in_page
 
@@ -1199,6 +1200,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------ settings and help
     def set_finish(self, name: str) -> None:
         theme.set_finish(name)
+        finish.set(theme.FINISH)                 # every family app follows (finish.py)
         settings.set("finish", name)
         app = QApplication.instance()
         apply_look(app)
