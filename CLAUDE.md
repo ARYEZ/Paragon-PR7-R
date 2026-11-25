@@ -54,5 +54,6 @@ owner writes Python; explain the why of changes.
 - Behaviour questions: do what SumatraPDF does (menus, shortcuts, defaults).
 - Tests: `python -m pytest` (offscreen) on real PDFs from `tools/sample_pdf.py`. Never the real settings or data
   folder (conftest), or, outside CI, the registry.
-- Releases: bump `__version__` in `pr7r/__init__.py`, add a `## x.y.z` section to CHANGELOG.md; Run workflow with
-  "Publish a release" (or a `v*` tag) publishes.
+- Releases: bump `__version__` in `pr7r/__init__.py` and add a `## x.y.z` section to CHANGELOG.md, then push:
+  CI publishes that version by itself once every check has passed (the "Is this version released yet?"
+  step; this session can't start workflows or push tags). Run workflow / `v*` tags still work.
