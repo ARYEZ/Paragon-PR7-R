@@ -38,7 +38,7 @@ owner writes Python; explain the why of changes.
 - Installer `installer/pr7r.iss` (Inno Setup 6, per user, AppId {1BC53F2C-70E7-45EA-B97E-FC9294E87FC3} permanent);
   CI installs it, runs `tools/verify_install.py installed`, uninstalls, `... uninstalled`. Spec: file details, no
   UPX, PyInstaller's bootloader built in CI, Defender scan (PR7-F's false-positive fix).
-- Updates: `pr7r/updates.py` (no Qt; GitHub's public releases/latest, User-Agent names only the app, installer asset `PR7-R-Setup-*.exe`, run with /SILENT /relaunch=1) and `update_ui.py` (once-a-day check from app.py, the menu's Check for Updates, UpdateDialog; settings updates/auto|last|skip; `notify` for tests). The installer's [Code] Relaunch starts PR7-R again only for /relaunch=1. Same files in every family app (PR7-W's update_ui imports PyQt6): keep them in step. `family.py`: the other family apps by their permanent AppIds (uninstall InstallLocation).
+- Updates: `pr7r/updates.py` (no Qt; GitHub's public releases/latest, User-Agent names only the app, installer asset `PR7-R-Setup-*.exe`, run with /SILENT /relaunch=1) and `update_ui.py` (once-a-day check from app.py, the menu's Check for Updates, UpdateDialog; settings updates/auto|last|skip; `notify` for tests). The installer's [Code] Relaunch starts PR7-R again only for /relaunch=1. Same files in every family app (PR7-W's update_ui imports PyQt6): keep them in step. With PR7-U (the family installer) installed, update_ui offers it (`_family_app`, `open_family`; `answer` for tests); every app has the shared family.py with all ten AppIds. `family.py`: the other family apps by their permanent AppIds (uninstall InstallLocation).
 
 ## The look (family rules)
 
